@@ -1,0 +1,10 @@
+[project]
+name = "vox-drop"
+version = "0.1.0"
+requires-python = ">=3.10"
+dependencies = [
+    "faster-whisper>=1.1.0",
+]
+
+[project.scripts]
+vox-drop = "transcribe:main"
