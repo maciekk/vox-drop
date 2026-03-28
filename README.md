@@ -41,6 +41,26 @@ vox-drop recording.mp3 --flag-low-confidence  # highlight uncertain words
 vox-drop recording.mp3 --flag-low-confidence --confidence-threshold 0.7  # stricter
 ```
 
+### Output
+
+Transcription is written to stdout, so you can pipe or redirect it:
+
+```bash
+vox-drop recording.mp3 > transcript.txt
+vox-drop recording.mp3 | grep "keyword"
+```
+
+### Batch transcription
+
+Use `transcribe_all.sh` to process multiple files in one go. Each file is separated by a header line:
+
+```bash
+./transcribe_all.sh file1.mp3 file2.wav file3.mp3
+./transcribe_all.sh --model base --language en *.mp3
+```
+
+All `vox-drop` options are supported and applied to every file.
+
 ### Low confidence flagging
 
 Use `--flag-low-confidence` to enable word-level confidence scoring. Words below the threshold (default 50%) are marked inline with `[brackets?]`, and a summary is printed at the end:
