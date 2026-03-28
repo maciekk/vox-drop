@@ -20,7 +20,7 @@ The first run will download the Whisper model (~500 MB for `small`).
 ## Usage
 
 ```bash
-vox-drop recording.mp3
+vox-drop sample.mp3
 ```
 
 ### Options
