@@ -20,7 +20,7 @@ The first run will download the Whisper model (~500 MB for `small`).
 ## Usage
 
 ```bash
-vox-drop sample.mp3
+vox-drop samples/sample.mp3
 ```
 
 ### Options
@@ -72,3 +72,7 @@ this is a [mumbled?] sentence about [something?]
   1:23  'mumbled'             confidence: 31%
   1:24  'something'           confidence: 42%
 ```
+
+## Credits
+File samples (OSR_*.wav) are from Open Speech Repository:<br>
+  https://www.voiptroubleshooter.com/open_speech/american.html
