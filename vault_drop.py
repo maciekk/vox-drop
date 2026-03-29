@@ -1,4 +1,5 @@
 import argparse
+import subprocess
 import sys
 from datetime import date, datetime
 from pathlib import Path
@@ -14,6 +15,17 @@ def collect_audio_files(directory: Path) -> list[Path]:
         f for f in directory.iterdir()
         if f.is_file() and f.suffix.lower() in AUDIO_EXTENSIONS
     )
+
+
+def _get_duration(path: Path) -> float | None:
+    try:
+        result = subprocess.run(
+            ["ffprobe", "-v", "quiet", "-show_entries", "format=duration", "-of", "csv=p=0", str(path)],
+            capture_output=True, text=True, check=True,
+        )
+        return float(result.stdout.strip())
+    except Exception:
+        return None
 
 
 def main():
@@ -64,7 +76,8 @@ def main():
     print(f"Loading model '{args.model}'...", file=sys.stderr)
     model = load_model(args.model)
 
-    sections = []
+    # Each entry: {'type': 'note'|'task', 'content': str, 'timestamp': str, 'filename': str}
+    entries = []
     for audio_file in audio_files:
         print(f"Transcribing: {audio_file.name}", file=sys.stderr)
         wall_time = datetime.now().strftime("%H:%M")
@@ -74,14 +87,52 @@ def main():
             flag_low_confidence=args.flag_low_confidence,
             confidence_threshold=args.confidence_threshold,
         )
-        sections.append(f"\n## {wall_time} — {audio_file.name}\n\n{transcript.strip()}\n")
+        text = transcript.strip()
+
+        if not text:
+            size_kb = audio_file.stat().st_size / 1024
+            duration = _get_duration(audio_file)
+            dur_str = f"{duration:.1f}s" if duration is not None else "unknown"
+            body = f"(no voice) — {size_kb:.1f} KB, {dur_str}"
+            entries.append({"type": "note", "content": body, "timestamp": wall_time, "filename": audio_file.name})
+            continue
+
+        words = text.split()
+        first_word = words[0].lower().rstrip(".,!?") if words else ""
+        body = " ".join(words[1:]).strip() if len(words) > 1 else ""
+
+        if first_word == "task":
+            entries.append({"type": "task", "content": body, "timestamp": wall_time, "filename": audio_file.name})
+        elif first_word == "continue":
+            if entries:
+                sep = " " if entries[-1]["content"] else ""
+                entries[-1]["content"] += sep + body
+            else:
+                entries.append({"type": "note", "content": body, "timestamp": wall_time, "filename": audio_file.name})
+        else:
+            content = body if first_word == "note" else text
+            entries.append({"type": "note", "content": content, "timestamp": wall_time, "filename": audio_file.name})
+
+    tasks = [e for e in entries if e["type"] == "task"]
+    notes = [e for e in entries if e["type"] == "note"]
+
+    output_parts = []
+    if tasks:
+        section = "## Tasks\n\n"
+        section += "".join(f"- [ ] {e['content']}\n" for e in tasks)
+        output_parts.append(section)
+    if notes:
+        section = "## Notes\n"
+        for e in notes:
+            section += f"\n### {e['timestamp']} — {e['filename']}\n\n{e['content']}\n"
+        output_parts.append(section)
 
     mode = "a" if file_exists else "w"
     with out_path.open(mode, encoding="utf-8") as f:
         if not file_exists:
             f.write(f"---\ntags: [vox-drop, inbox]\ncreated: {today.isoformat()}\n---\n")
-        for section in sections:
-            f.write(section)
+        for part in output_parts:
+            f.write("\n" + part)
 
     print(f"Written to: {out_path}", file=sys.stderr)
 
