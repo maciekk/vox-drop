@@ -13,10 +13,14 @@ Requires ffmpeg installed on the system.
 ## Usage
 
 ```bash
-vox-drop recording.mp3
-vox-drop recording.mp3 --model base --language en
+transcribe recording.mp3
+transcribe recording.mp3 --model base --language en
 ```
 
 ## Architecture
 
-Single-file CLI tool (`transcribe.py`) that uses `faster-whisper` to transcribe audio files to text locally via Whisper models. Entry point is `main()`, registered as the `vox-drop` console script in `pyproject.toml`. No tests, no linting configured.
+Two CLI tools:
+- `transcribe.py` — transcribes a single audio file to stdout. Entry point `main()`, registered as the `transcribe` console script.
+- `process_drop.py` — transcribes a directory of audio files and writes them into an Obsidian vault note. Entry point `main()`, registered as the `vox-to-vault` console script.
+
+Both registered in `pyproject.toml`. No tests, no linting configured.
