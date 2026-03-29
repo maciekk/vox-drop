@@ -8,7 +8,7 @@ dependencies = [
 
 [project.scripts]
 vox-drop = "transcribe:main"
-vox-drop-inbox = "vault_drop:main"
+vox-drop-inbox = "drop_to_vault:main"
 
 [build-system]
 requires = ["hatchling"]
@@ -16,4 +16,4 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["."]
-include = ["transcribe.py", "vault_drop.py"]
+include = ["transcribe.py", "drop_to_vault.py"]

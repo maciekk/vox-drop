@@ -96,15 +96,6 @@ vox-drop-inbox ~/recordings/ --model base --language en
 vox-drop-inbox ~/recordings/ --flag-low-confidence
 ```
 
-## Batch transcription to stdout
-
-Use `transcribe_all.sh` to process multiple files in one go, printing to stdout. Each file is separated by a header line:
-
-```bash
-./transcribe_all.sh file1.mp3 file2.wav file3.mp3
-./transcribe_all.sh --model base --language en *.mp3
-```
-
 ## Credits
 File samples (OSR_*.wav) are from Open Speech Repository:<br>
   https://www.voiptroubleshooter.com/open_speech/american.html
