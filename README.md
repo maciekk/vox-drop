@@ -1,11 +1,13 @@
 # vox-drop
 
-Transcribe speech from audio files to text using [Whisper](https://github.com/openai/whisper), running locally on your machine.
+Zero effort transcribing+ path for "dictated MP3s" -> Obsidian vault.
+
+Transcribes speech from audio files to text using [Whisper](https://github.com/openai/whisper), running locally on your machine, with some special tricks (e.g., first word in recording interpreted as a command).
 
 ## Prerequisites
 
 - Python 3.10+
-- [ffmpeg](https://ffmpeg.org/) (`brew install ffmpeg`)
+- [ffmpeg](https://ffmpeg.org/)
 
 ## Install
 
