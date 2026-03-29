@@ -5,8 +5,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Setup
 
 ```bash
-python3 -m venv .venv && source .venv/bin/activate
-pip install -e .
+uv sync
 ```
 
 Requires ffmpeg installed on the system.
