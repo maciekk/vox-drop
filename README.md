@@ -10,9 +10,7 @@ Transcribe speech from audio files to text using [Whisper](https://github.com/op
 ## Install
 
 ```bash
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -e .
+uv sync
 ```
 
 The first run will download the Whisper model (~500 MB for `small`).
@@ -50,9 +48,26 @@ vox-drop recording.mp3 > transcript.txt
 vox-drop recording.mp3 | grep "keyword"
 ```
 
-### Batch transcription
+### Obsidian inbox
 
-Use `transcribe_all.sh` to process multiple files in one go. Each file is separated by a header line:
+Use `vox-drop-inbox` to transcribe a whole directory of audio files into a single Obsidian note. The note is written to `_inbox/YYYY-MM-DD vox drop.md` inside your vault. Running it again on the same day appends to the existing note.
+
+```bash
+vox-drop-inbox ~/recordings/ --vault ~/Documents/Personal/
+```
+
+Each audio file becomes a `## HH:MM — filename` section. All `vox-drop` options are supported:
+
+```bash
+vox-drop-inbox ~/recordings/ --model base --language en
+vox-drop-inbox ~/recordings/ --flag-low-confidence
+```
+
+The `--vault` flag defaults to `~/Documents/Personal/`. The `_inbox` folder is created automatically if it doesn't exist.
+
+### Batch transcription (stdout)
+
+Use `transcribe_all.sh` to process multiple files in one go, printing to stdout. Each file is separated by a header line:
 
 ```bash
 ./transcribe_all.sh file1.mp3 file2.wav file3.mp3
