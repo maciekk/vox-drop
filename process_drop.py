@@ -17,6 +17,25 @@ def collect_audio_files(directory: Path) -> list[Path]:
     )
 
 
+def parse_recorded_time(stem: str) -> str | None:
+    """Return 'HH:MM' parsed from a YYMMDD_HHMM filename stem, or None if it doesn't match."""
+    try:
+        dt = datetime.strptime(stem, "%y%m%d_%H%M")
+        return dt.strftime("%H:%M")
+    except ValueError:
+        return None
+
+
+def classify_entry(text: str) -> tuple[str, str]:
+    """Parse voice command prefix. Returns (type, content) where type is 'task'|'note'|'continue'."""
+    words = text.split()
+    first = words[0].lower().rstrip(".,!?") if words else ""
+    rest = " ".join(words[1:]).strip() if len(words) > 1 else ""
+    if first in ("task", "note", "continue"):
+        return first, rest
+    return "note", text
+
+
 def _get_duration(path: Path) -> float | None:
     try:
         result = subprocess.run(
@@ -80,7 +99,8 @@ def main():
     entries = []
     for audio_file in audio_files:
         print(f"Transcribing: {audio_file.name}", file=sys.stderr)
-        wall_time = datetime.now().strftime("%H:%M")
+        recorded = parse_recorded_time(audio_file.stem)
+        wall_time = recorded if recorded is not None else f"[{datetime.now().strftime('%H:%M')}]"
         transcript = transcribe_file(
             model, audio_file,
             language=args.language,
@@ -97,21 +117,18 @@ def main():
             entries.append({"type": "note", "content": body, "timestamp": wall_time, "filename": audio_file.name})
             continue
 
-        words = text.split()
-        first_word = words[0].lower().rstrip(".,!?") if words else ""
-        body = " ".join(words[1:]).strip() if len(words) > 1 else ""
+        kind, body = classify_entry(text)
 
-        if first_word == "task":
+        if kind == "task":
             entries.append({"type": "task", "content": body, "timestamp": wall_time, "filename": audio_file.name})
-        elif first_word == "continue":
+        elif kind == "continue":
             if entries:
                 sep = " " if entries[-1]["content"] else ""
                 entries[-1]["content"] += sep + body
             else:
                 entries.append({"type": "note", "content": body, "timestamp": wall_time, "filename": audio_file.name})
         else:
-            content = body if first_word == "note" else text
-            entries.append({"type": "note", "content": content, "timestamp": wall_time, "filename": audio_file.name})
+            entries.append({"type": "note", "content": body, "timestamp": wall_time, "filename": audio_file.name})
 
     tasks = [e for e in entries if e["type"] == "task"]
     notes = [e for e in entries if e["type"] == "note"]
